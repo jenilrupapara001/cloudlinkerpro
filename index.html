@@ -651,6 +651,7 @@
                 }
 
                 const signData = await signResponse.json();
+                console.log('🔐 Sign data received:', signData);
                 const { cloudName, apiKey, signature, timestamp, folder } = signData;
 
                 updateProgress(10, 'Uploading images directly to Cloudinary...', validFiles[0].name);
@@ -667,14 +668,19 @@
                     formData.append('folder', folder);
 
                     const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`;
+                    console.log('🚀 Uploading to:', uploadUrl);
+                    console.log('📝 Parameters:', { api_key: apiKey, timestamp, folder, signature: signature.substring(0, 10) + '...' });
                     
                     const uploadResponse = await fetch(uploadUrl, {
                         method: 'POST',
                         body: formData
                     });
 
+                    const responseText = await uploadResponse.text();
+                    console.log('📡 Upload response:', responseText);
+
                     if (!uploadResponse.ok) {
-                        throw new Error(`Failed to upload ${file.name}`);
+                        throw new Error(`Failed to upload ${file.name}: ${responseText}`);
                     }
 
                     const uploadResult = await uploadResponse.json();

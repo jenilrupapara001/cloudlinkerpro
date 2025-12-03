@@ -52,11 +52,17 @@ module.exports = async (req, res) => {
     const timestamp = Math.round((new Date).getTime() / 1000);
     const paramsToSign = {
       timestamp,
-      folder,
+      folder: folder,
       resource_type: 'auto'
     };
 
     const signature = cloudinary.utils.api_sign_request(paramsToSign, process.env.CLOUDINARY_API_SECRET);
+    
+    console.log('🔐 Generated signature:', { 
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+      paramsToSign, 
+      signature: signature.substring(0, 10) + '...' 
+    });
 
     res.status(200).json({
       success: true,
