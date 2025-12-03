@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudLinker Pro - Professional Image Sharing Platform</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #fff, #f0f8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .main-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .upload-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .upload-section h2 {
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+            font-weight: 400;
+        }
+
+        .dropzone {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 4rem 2rem;
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .dropzone:hover {
+            border-color: #764ba2;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8efff 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15);
+        }
+
+        .dropzone.dragover {
+            border-color: #28a745;
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .dropzone-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .dropzone h3 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            font-size: 1.4rem;
+            font-weight: 400;
+        }
+
+        .dropzone p {
+            color: #6c757d;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-options {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .upload-option {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .upload-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .upload-option.secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+
+        .upload-option.secondary:hover {
+            box-shadow: 0 8px 20px rgba(108, 117, 125, 0.3);
+        }
+
+        .progress-section {
+            margin: 2rem 0;
+            display: none;
+        }
+
+        .progress-section.active {
+            display: block;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .progress-text-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .progress-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.25rem;
+        }
+
+        .current-file {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+
+        .upload-speed {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.25s ease;
+            border-radius: 4px;
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 1000;
+        }
+
+        .toast {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #28a745;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            min-width: 300px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.error {
+            border-left-color: #dc3545;
+        }
+
+        .toast.warning {
+            border-left-color: #ffc107;
+        }
+
+        .toast.info {
+            border-left-color: #17a2b8;
+        }
+
+        .toast-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .toast-message {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .feature-card p {
+            color: #6c757d;
+            line-height: 1.6;
+        }
+
+        .export-section {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(108, 117, 125, 0.2);
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .export-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            .header h1 {
+                font-size: 2rem;
+            }
+            .main-card {
+                padding: 2rem;
+            }
+            .upload-options {
+                flex-direction: column;
+                align-items: center;
+            }
+            .progress-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            .progress-details {
+                align-items: flex-start;
+                width: 100%;
+            }
+            .progress-stats {
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+            .toast {
+                min-width: 250px;
+                right: 1rem;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-cloud-upload-alt"></i> CloudLinker Pro</h1>
+            <p>Professional Cloud-Based Image Sharing Platform</p>
+        </div>
+
+        <div class="main-card">
+            <div class="upload-section">
+                <h2><i class="fas fa-upload"></i> Upload Images</h2>
+
+                <div class="upload-options">
+                    <button class="upload-option" type="button" onclick="document.getElementById('singleFile').click()">
+                        <i class="fas fa-file-image"></i>
+                        Single Image
+                    </button>
+                    <button class="upload-option secondary" type="button" onclick="document.getElementById('folderUpload').click()">
+                        <i class="fas fa-folder-open"></i>
+                        Upload Folder
+                    </button>
+                    <button class="upload-option secondary" type="button" onclick="document.getElementById('multipleFiles').click()">
+                        <i class="fas fa-images"></i>
+                        Multiple Files
+                    </button>
+                </div>
+
+                <div class="dropzone" id="mainDropzone">
+                    <div class="dropzone-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h3>Drag & Drop Images Here</h3>
+                    <p>Supports JPG, PNG, GIF, WebP files</p>
+                    <p>No file size limits • Upload folders with ease</p>
+                </div>
+
+                <input type="file" id="singleFile" accept="image/*" class="hidden">
+                <input type="file" id="multipleFiles" accept="image/*" multiple class="hidden">
+                <input type="file" id="folderUpload" webkitdirectory directory class="hidden">
+
+                <div class="progress-section" id="progressSection">
+                    <div class="progress-info">
+                        <div class="progress-text-container">
+                            <span id="progressText">Uploading...</span>
+                            <span id="currentFile" class="current-file"></span>
+                        </div>
+                        <div class="progress-details">
+                            <span id="progressPercent">0%</span>
+                            <span id="uploadSpeed" class="upload-speed"></span>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-stats" id="progressStats">
+                        <span id="filesProcessed">0 of 0 files</span>
+                        <span id="totalSize">0 MB</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h3>Lightning Fast</h3>
+                    <p>Upload images instantly with our optimized cloud infrastructure and CDN delivery.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Secure & Reliable</h3>
+                    <p>Your images are safely stored with enterprise-grade security and automatic backups.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Smart Analytics</h3>
+                    <p>Track upload progress, manage files efficiently, and export data seamlessly.</p>
+                </div>
+            </div>
+
+            <div class="stats-section" id="statsSection">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalUploads">0</div>
+                    <div class="stat-label">Total Uploads</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="storageUsed">0 MB</div>
+                    <div class="stat-label">Storage Used</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="successRate">100%</div>
+                    <div class="stat-label">Success Rate</div>
+                </div>
+            </div>
+
+            <div class="export-section">
+                <h3 style="color: #2c3e50; margin-bottom: 1rem;">
+                    <i class="fas fa-download"></i> Export Data
+                </h3>
+                <p style="color: #6c757d; margin-bottom: 2rem;">
+                    Download a complete Excel report of all your uploaded images with URLs and metadata
+                </p>
+                <button class="export-btn" id="exportBtn" type="button">
+                    <i class="fas fa-file-excel"></i>
+                    Export to Excel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        const API_BASE = '/api';
+
+        const mainDropzone = document.getElementById('mainDropzone');
+        const singleFile = document.getElementById('singleFile');
+        const multipleFiles = document.getElementById('multipleFiles');
+        const folderUpload = document.getElementById('folderUpload');
+
+        const progressSection = document.getElementById('progressSection');
+        const progressText = document.getElementById('progressText');
+        const progressPercent = document.getElementById('progressPercent');
+        const progressFill = document.getElementById('progressFill');
+        const currentFile = document.getElementById('currentFile');
+        const uploadSpeed = document.getElementById('uploadSpeed');
+        const filesProcessed = document.getElementById('filesProcessed');
+        const totalSize = document.getElementById('totalSize');
+
+        const exportBtn = document.getElementById('exportBtn');
+        const totalUploads = document.getElementById('totalUploads');
+        const storageUsed = document.getElementById('storageUsed');
+        const successRateEl = document.getElementById('successRate');
+
+        let isUploading = false;
+        let uploadStats = {
+            total: 0,
+            success: 0,
+            failed: 0,
+            totalSize: 0
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            loadStats();
+        });
+
+        function setupEventListeners() {
+            mainDropzone.addEventListener('click', () => folderUpload.click());
+            mainDropzone.addEventListener('dragover', handleDragOver);
+            mainDropzone.addEventListener('dragleave', handleDragLeave);
+            mainDropzone.addEventListener('drop', handleDrop);
+
+            singleFile.addEventListener('change', handleSingleFile);
+            multipleFiles.addEventListener('change', handleMultipleFiles);
+            folderUpload.addEventListener('change', handleFolderUpload);
+
+            exportBtn.addEventListener('click', exportToExcel);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            mainDropzone.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            mainDropzone.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            mainDropzone.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files);
+            handleIncomingFiles(files);
+        }
+
+        function handleSingleFile(e) {
+            const files = Array.from(e.target.files);
+            handleIncomingFiles(files);
+        }
+
+        function handleMultipleFiles(e) {
+            const files = Array.from(e.target.files);
+            handleIncomingFiles(files);
+        }
+
+        function handleFolderUpload(e) {
+            const files = Array.from(e.target.files);
+            handleIncomingFiles(files);
+        }
+
+        function handleIncomingFiles(files) {
+            const imageFiles = files.filter(file => file.type.startsWith('image/'));
+            if (imageFiles.length === 0) {
+                showToast('Please select image files only', 'error');
+                return;
+            }
+            uploadFiles(imageFiles);
+        }
+
+        async function uploadFiles(files) {
+            if (isUploading) {
+                showToast('Upload already in progress', 'warning');
+                return;
+            }
+
+            const validFiles = files.filter(file => {
+                if (!file.type.startsWith('image/')) {
+                    showToast(file.name + ' is not an image file', 'error');
+                    return false;
+                }
+                return true;
+            });
+
+            if (validFiles.length === 0) {
+                showToast('No valid image files to upload', 'error');
+                return;
+            }
+
+            if (validFiles.length !== files.length) {
+                showToast('Some files were skipped due to validation', 'warning');
+            }
+
+            isUploading = true;
+            const totalFileSize = validFiles.reduce((sum, file) => sum + file.size, 0);
+            let processedFiles = 0;
+
+            showProgress(true, 'Preparing upload...', validFiles[0].name);
+            updateProgressStats(validFiles.length, 0, totalFileSize);
+            updateProgress(0, 'Uploading ' + validFiles.length + ' image(s)...', validFiles[0].name);
+
+            // Simulated global progress while fetch runs
+            let simulatedProgress = 0;
+            const progressTimer = setInterval(() => {
+                if (simulatedProgress < 90) {
+                    simulatedProgress += Math.random() * 10;
+                    if (simulatedProgress > 90) simulatedProgress = 90;
+                    const percent = simulatedProgress;
+                    updateProgress(percent, 'Uploading ' + validFiles.length + ' image(s)...', validFiles[processedFiles]?.name || '');
+                    updateUploadSpeed(percent);
+                }
+            }, 250);
+
+            try {
+                const formData = new FormData();
+                validFiles.forEach(file => {
+                    formData.append('images', file);
+                });
+
+                const response = await fetch(API_BASE + '/upload/multiple', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                clearInterval(progressTimer);
+                const result = await response.json();
+
+                if (result.success) {
+                    processedFiles = validFiles.length;
+                    updateProgressStats(validFiles.length, processedFiles, totalFileSize);
+                    updateProgress(100, 'Upload completed successfully!', '');
+                    uploadStats.total += validFiles.length;
+                    uploadStats.success += result.count || validFiles.length;
+                    uploadStats.totalSize += totalFileSize;
+                    updateStats();
+
+                    setTimeout(() => {
+                        showProgress(false);
+                        showToast('Successfully uploaded ' + (result.count || validFiles.length) + ' image(s)!', 'success');
+                    }, 1200);
+                } else {
+                    throw new Error(result.message || 'Upload failed');
+                }
+            } catch (err) {
+                clearInterval(progressTimer);
+                console.error('Upload error:', err);
+                uploadStats.failed += validFiles.length;
+                updateProgress(0, 'Upload failed', '');
+                showToast('Upload failed. Please try again.', 'error');
+                setTimeout(() => showProgress(false), 1500);
+            } finally {
+                isUploading = false;
+                singleFile.value = '';
+                multipleFiles.value = '';
+                folderUpload.value = '';
+            }
+        }
+
+        function showProgress(show, text = '', currentFileName = '') {
+            if (show) {
+                progressSection.classList.add('active');
+            } else {
+                progressSection.classList.remove('active');
+                currentFile.textContent = '';
+                uploadSpeed.textContent = '';
+            }
+            updateProgress(0, text, currentFileName);
+            updateProgressStats(0, 0, 0);
+        }
+
+        function updateProgress(percent, text, currentFileName = '') {
+            const safePercent = Math.max(0, Math.min(100, percent));
+            progressFill.style.width = safePercent + '%';
+            progressPercent.textContent = Math.round(safePercent) + '%';
+            progressText.textContent = text;
+            currentFile.textContent = currentFileName ? 'Processing: ' + currentFileName : '';
+        }
+
+        function updateProgressStats(totalFiles, processedFilesCount, totalSizeBytes) {
+            filesProcessed.textContent = processedFilesCount + ' of ' + totalFiles + ' files';
+            totalSize.textContent = (totalSizeBytes / 1024 / 1024).toFixed(1) + ' MB';
+        }
+
+        function updateUploadSpeed(progressPercent) {
+            const speeds = ['Fast', 'Very Fast', 'Lightning Speed', 'Optimal Speed'];
+            const randomSpeed = speeds[Math.floor(Math.random() * speeds.length)];
+            uploadSpeed.textContent = progressPercent < 100 ? randomSpeed : '';
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+
+            const icon = getToastIcon(type);
+            const title = getToastTitle(type);
+
+            toast.innerHTML = `
+                <div class="toast-header">
+                    <i class="${icon}"></i>
+                    <span>${title}</span>
+                </div>
+                <div class="toast-message">${message}</div>
+            `;
+
+            const container = document.getElementById('toastContainer');
+            container.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 100);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    if (toast.parentNode === container) {
+                        container.removeChild(toast);
+                    }
+                }, 300);
+            }, 5000);
+        }
+
+        function getToastIcon(type) {
+            if (type === 'success') return 'fas fa-check-circle';
+            if (type === 'error') return 'fas fa-exclamation-circle';
+            if (type === 'warning') return 'fas fa-exclamation-triangle';
+            if (type === 'info') return 'fas fa-info-circle';
+            return 'fas fa-bell';
+        }
+
+        function getToastTitle(type) {
+            if (type === 'success') return 'Success';
+            if (type === 'error') return 'Error';
+            if (type === 'warning') return 'Warning';
+            if (type === 'info') return 'Info';
+            return 'Notification';
+        }
+
+        async function exportToExcel() {
+            try {
+                exportBtn.disabled = true;
+                exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating Excel...';
+
+                const response = await fetch(API_BASE + '/export/excel');
+                if (!response.ok) throw new Error('Export failed');
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'cloudlinker-pro-export-' + new Date().toISOString().split('T')[0] + '.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                showToast('Excel file downloaded successfully!', 'success');
+            } catch (err) {
+                console.error('Export error:', err);
+                showToast('Failed to export Excel file', 'error');
+            } finally {
+                exportBtn.disabled = false;
+                exportBtn.innerHTML = '<i class="fas fa-file-excel"></i> Export to Excel';
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch(API_BASE + '/images');
+                const result = await response.json();
+                if (result.success) {
+                    uploadStats.total = result.count || 0;
+                    uploadStats.success = result.count || 0;
+                    updateStats();
+                }
+            } catch (err) {
+                console.error('Error loading stats:', err);
+            }
+        }
+
+        function updateStats() {
+            totalUploads.textContent = uploadStats.total;
+            storageUsed.textContent = (uploadStats.totalSize / 1024 / 1024).toFixed(1) + ' MB';
+            const rate = uploadStats.total > 0
+                ? Math.round((uploadStats.success / uploadStats.total) * 100)
+                : 100;
+            successRateEl.textContent = rate + '%';
+        }
+    </script>
+</body>
+</html>
