@@ -61,6 +61,8 @@ module.exports = async (req, res) => {
     const url = new URL(req.url, 'http://dummy-host');
     const pathname = url.pathname;
 
+    console.log('🔍 API Request:', { method, pathname, url: req.url });
+
     // Handle different routes
     if (method === 'GET' && pathname === '/images') {
       // Get all images
@@ -90,9 +92,11 @@ module.exports = async (req, res) => {
         success: true,
         data: {}
       });
-    } else if (method === 'GET' && pathname === '/images/export/excel') {
+    } else if (method === 'GET' && pathname.includes('/images/export/excel')) {
       // Export to Excel
+      console.log('📊 Starting Excel export...');
       const images = await SimpleImage.find().sort({ uploadDate: -1 });
+      console.log('📊 Found images:', images.length);
 
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Image URLs');
@@ -127,10 +131,13 @@ module.exports = async (req, res) => {
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename="image-urls-${new Date().toISOString().split('T')[0]}.xlsx`);
 
+      console.log('📊 Writing Excel file...');
       // Send workbook
       await workbook.xlsx.write(res);
       res.end();
+      console.log('📊 Excel export completed');
     } else {
+      console.log('❌ Route not found:', { method, pathname });
       res.status(404).json({ success: false, message: 'Route not found', pathname });
     }
 
