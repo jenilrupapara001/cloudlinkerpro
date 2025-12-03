@@ -33,9 +33,11 @@ const SimpleImageSchema = new mongoose.Schema({
 const SimpleImage = mongoose.models.SimpleImage || mongoose.model('SimpleImage', SimpleImageSchema);
 
 module.exports = async (req, res) => {
+  console.log('🚀 API Handler Started');
+  
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
@@ -45,23 +47,30 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Connect to MongoDB
-    if (mongoose.connection.readyState !== 1) {
-      await mongoose.connect(process.env.MONGO_URI);
-    }
-
-    // Configure Cloudinary
+    console.log('🔧 Configuring Cloudinary...');
+    // Configure Cloudinary first
     cloudinary.config({
       cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
       api_key: process.env.CLOUDINARY_API_KEY,
       api_secret: process.env.CLOUDINARY_API_SECRET
     });
 
-    const { method } = req;
-    const url = new URL(req.url, 'http://dummy-host');
-    const pathname = url.pathname;
+    console.log('🔌 Connecting to MongoDB...');
+    // Connect to MongoDB
+    if (mongoose.connection.readyState !== 1) {
+      await mongoose.connect(process.env.MONGO_URI);
+      console.log('✅ MongoDB connected');
+    } else {
+      console.log('✅ MongoDB already connected');
+    }
 
-    console.log('🔍 API Request:', { method, pathname, url: req.url });
+    const { method } = req;
+    // Use a more reliable way to parse the URL in serverless environment
+    const url = req.url || '/';
+    const pathname = url.split('?')[0]; // Remove query parameters
+    const fullPathname = pathname.startsWith('/api') ? pathname : `/api${pathname}`;
+
+    console.log('🔍 API Request:', { method, url, pathname, fullPathname });
 
     // Handle different routes
     if (method === 'GET' && pathname === '/images') {
@@ -92,7 +101,7 @@ module.exports = async (req, res) => {
         success: true,
         data: {}
       });
-    } else if (method === 'GET' && pathname.includes('/images/export/excel')) {
+    } else if (method === 'GET' && (pathname.includes('/images/export/excel') || pathname === '/export/excel' || fullPathname.includes('/images/export/excel'))) {
       // Export to Excel
       console.log('📊 Starting Excel export...');
       const images = await SimpleImage.find().sort({ uploadDate: -1 });
@@ -102,7 +111,7 @@ module.exports = async (req, res) => {
       const worksheet = workbook.addWorksheet('Image URLs');
 
       // Add headers
-      worksheet.addRow(['Image Name', 'Image URL']);
+      worksheet.addRow(['Image Name', 'Image URL', 'Upload Date', 'File Size (MB)', 'File Type']);
       
       // Style headers
       worksheet.getRow(1).font = { bold: true };
@@ -116,7 +125,10 @@ module.exports = async (req, res) => {
       images.forEach(image => {
         worksheet.addRow([
           image.originalFilename,
-          image.cloudinaryUrl
+          image.cloudinaryUrl,
+          new Date(image.uploadDate).toLocaleDateString(),
+          (image.fileSize / 1024 / 1024).toFixed(2),
+          image.fileType
         ]);
       });
 
@@ -129,7 +141,7 @@ module.exports = async (req, res) => {
 
       // Set response headers
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      res.setHeader('Content-Disposition', `attachment; filename="image-urls-${new Date().toISOString().split('T')[0]}.xlsx`);
+      res.setHeader('Content-Disposition', `attachment; filename="image-urls-${new Date().toISOString().split('T')[0]}.xlsx"`);
 
       console.log('📊 Writing Excel file...');
       // Send workbook
@@ -143,10 +155,12 @@ module.exports = async (req, res) => {
 
   } catch (error) {
     console.error('❌ API Error:', error);
+    console.error('❌ Stack trace:', error.stack);
     res.status(500).json({ 
       success: false, 
       message: 'Server error',
-      error: error.message 
+      error: error.message,
+      stack: error.stack
     });
   }
 };

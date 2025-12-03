@@ -1,42 +1,59 @@
 {
-  "builds": [
-    {
-      "src": "api/*.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "index.html",
-      "use": "@vercel/static"
+    "builds": [
+        {
+            "src": "api/*.js",
+            "use": "@vercel/node"
+        },
+        {
+            "src": "index.html",
+            "use": "@vercel/static"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/api/simple-export",
+            "dest": "/api/simple-export.js"
+        },
+        {
+            "src": "/api/minimal",
+            "dest": "/api/minimal.js"
+        },
+        {
+            "src": "/api/test",
+            "dest": "/api/test.js"
+        },
+        {
+            "src": "/api/cloudinary-sign",
+            "dest": "/api/cloudinary-sign.js"
+        },
+        {
+            "src": "/api/images",
+            "dest": "/api/images.js"
+        },
+        {
+            "src": "/api/images/export/excel",
+            "dest": "/api/images.js"
+        },
+        {
+            "src": "/api/export/excel",
+            "dest": "/api/images.js"
+        },
+        {
+            "src": "/api/health",
+            "dest": "/api/health.js"
+        },
+        {
+            "src": "/",
+            "dest": "/index.html"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/index.html"
+        }
+    ],
+    "functions": {
+        "api/*.js": {
+            "maxDuration": 300
+        }
     }
-  ],
-  "routes": [
-    {
-      "src": "/api/upload/multiple",
-      "dest": "/api/upload.js"
-    },
-    {
-      "src": "/api/upload",
-      "dest": "/api/upload.js"
-    },
-    {
-      "src": "/api/images",
-      "dest": "/api/images.js"
-    },
-    {
-      "src": "/api/images/export/excel",
-      "dest": "/api/images.js"
-    },
-    {
-      "src": "/api/health",
-      "dest": "/api/health.js"
-    },
-    {
-      "src": "/",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ]
 }
