@@ -90,7 +90,7 @@ module.exports = async (req, res) => {
         success: true,
         data: {}
       });
-    } else if (method === 'GET' && pathname === '/export/excel') {
+    } else if (method === 'GET' && pathname === '/images/export/excel') {
       // Export to Excel
       const images = await SimpleImage.find().sort({ uploadDate: -1 });
 

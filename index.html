@@ -814,7 +814,7 @@
                 exportBtn.disabled = true;
                 exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating Excel...';
 
-                const response = await fetch(API_BASE + '/export/excel');
+                const response = await fetch(API_BASE + '/images/export/excel');
                 if (!response.ok) throw new Error('Export failed');
 
                 const blob = await response.blob();

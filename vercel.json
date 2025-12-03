@@ -31,7 +31,7 @@
       "dest": "/api/images.js"
     },
     {
-      "src": "/api/export/excel",
+      "src": "/api/images/export/excel",
       "dest": "/api/images.js"
     },
     {
