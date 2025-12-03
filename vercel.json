@@ -11,6 +11,14 @@
   ],
   "routes": [
     {
+      "src": "/api/cloudinary-sign",
+      "dest": "/api/cloudinary-sign.js"
+    },
+    {
+      "src": "/api/save-image",
+      "dest": "/api/save-image.js"
+    },
+    {
       "src": "/api/upload/multiple",
       "dest": "/api/upload.js"
     },
@@ -20,10 +28,6 @@
     },
     {
       "src": "/api/images",
-      "dest": "/api/images.js"
-    },
-    {
-      "src": "/api/images/export/excel",
       "dest": "/api/images.js"
     },
     {

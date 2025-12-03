@@ -630,58 +630,97 @@
 
             isUploading = true;
             const totalFileSize = validFiles.reduce((sum, file) => sum + file.size, 0);
-            let processedFiles = 0;
 
             showProgress(true, 'Preparing upload...', validFiles[0].name);
             updateProgressStats(validFiles.length, 0, totalFileSize);
-            updateProgress(0, 'Uploading ' + validFiles.length + ' image(s)...', validFiles[0].name);
 
-            // Simulated global progress while fetch runs
-            let simulatedProgress = 0;
-            const progressTimer = setInterval(() => {
-                if (simulatedProgress < 90) {
-                    simulatedProgress += Math.random() * 10;
-                    if (simulatedProgress > 90) simulatedProgress = 90;
-                    const percent = simulatedProgress;
-                    updateProgress(percent, 'Uploading ' + validFiles.length + ' image(s)...', validFiles[processedFiles]?.name || '');
-                    updateUploadSpeed(percent);
-                }
-            }, 250);
+            let uploadedCount = 0;
 
             try {
-                const formData = new FormData();
-                validFiles.forEach(file => {
-                    formData.append('images', file);
-                });
-
-                const response = await fetch(API_BASE + '/upload/multiple', {
+                // Get upload signature
+                const signResponse = await fetch(API_BASE + '/cloudinary-sign', {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ folder: 'cloudlinkerpro-unlimited' })
                 });
 
-                clearInterval(progressTimer);
-                const result = await response.json();
-
-                if (result.success) {
-                    processedFiles = validFiles.length;
-                    updateProgressStats(validFiles.length, processedFiles, totalFileSize);
-                    updateProgress(100, 'Upload completed successfully!', '');
-                    uploadStats.total += validFiles.length;
-                    uploadStats.success += result.count || validFiles.length;
-                    uploadStats.totalSize += totalFileSize;
-                    updateStats();
-
-                    setTimeout(() => {
-                        showProgress(false);
-                        showToast('Successfully uploaded ' + (result.count || validFiles.length) + ' image(s)!', 'success');
-                    }, 1200);
-                } else {
-                    throw new Error(result.message || 'Upload failed');
+                if (!signResponse.ok) {
+                    throw new Error('Failed to get upload signature');
                 }
+
+                const signData = await signResponse.json();
+                const { cloudName, apiKey, signature, timestamp, folder } = signData;
+
+                updateProgress(10, 'Uploading images directly to Cloudinary...', validFiles[0].name);
+
+                // Upload files directly to Cloudinary (no Vercel size limit)
+                const uploadPromises = validFiles.map(async (file, index) => {
+                    updateProgress(20 + (index * 60 / validFiles.length), `Uploading ${file.name}...`, file.name);
+                    
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('api_key', apiKey);
+                    formData.append('timestamp', timestamp);
+                    formData.append('signature', signature);
+                    formData.append('folder', folder);
+
+                    const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`;
+                    
+                    const uploadResponse = await fetch(uploadUrl, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!uploadResponse.ok) {
+                        throw new Error(`Failed to upload ${file.name}`);
+                    }
+
+                    const uploadResult = await uploadResponse.json();
+
+                    // Save image metadata to our database
+                    const saveResponse = await fetch(API_BASE + '/save-image', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            originalFilename: file.name,
+                            cloudinaryUrl: uploadResult.secure_url,
+                            cloudinaryPublicId: uploadResult.public_id,
+                            fileSize: file.size,
+                            fileType: file.type
+                        })
+                    });
+
+                    if (!saveResponse.ok) {
+                        throw new Error(`Failed to save ${file.name} to database`);
+                    }
+
+                    const saveResult = await saveResponse.json();
+                    uploadedCount++;
+
+                    updateProgress(90, `Completed ${uploadedCount}/${validFiles.length}`, '');
+                    return saveResult.data;
+                });
+
+                const uploadedImages = await Promise.all(uploadPromises);
+
+                updateProgress(100, 'Upload completed successfully!', '');
+                uploadStats.total += validFiles.length;
+                uploadStats.success += uploadedCount;
+                uploadStats.totalSize += totalFileSize;
+                updateStats();
+
+                setTimeout(() => {
+                    showProgress(false);
+                    showToast(`Successfully uploaded ${uploadedCount} image(s)!`, 'success');
+                }, 1200);
+
             } catch (err) {
-                clearInterval(progressTimer);
                 console.error('Upload error:', err);
-                uploadStats.failed += validFiles.length;
+                uploadStats.failed += (validFiles.length - uploadedCount);
                 updateProgress(0, 'Upload failed', '');
                 showToast('Upload failed. Please try again.', 'error');
                 setTimeout(() => showProgress(false), 1500);

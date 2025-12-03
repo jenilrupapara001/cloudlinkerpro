@@ -60,7 +60,11 @@ module.exports = async (req, res) => {
       api_secret: process.env.CLOUDINARY_API_SECRET
     });
 
-    if (req.method !== 'POST') {
+    const { method } = req;
+    const url = new URL(req.url, `https://${req.headers.host}`);
+    const pathname = url.pathname;
+
+    if (method !== 'POST') {
       return res.status(405).json({ success: false, message: 'Method not allowed' });
     }
 
