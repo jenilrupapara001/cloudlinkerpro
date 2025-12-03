@@ -23,6 +23,14 @@
       "dest": "/api/images.js"
     },
     {
+      "src": "/api/images/export/excel",
+      "dest": "/api/images.js"
+    },
+    {
+      "src": "/api/export/excel",
+      "dest": "/api/images.js"
+    },
+    {
       "src": "/api/health",
       "dest": "/api/health.js"
     },

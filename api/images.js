@@ -58,9 +58,11 @@ module.exports = async (req, res) => {
     });
 
     const { method } = req;
+    const url = new URL(req.url, `https://${req.headers.host}`);
+    const pathname = url.pathname;
 
     // Handle different routes
-    if (method === 'GET' && req.url.includes('/images')) {
+    if (method === 'GET' && pathname === '/images') {
       // Get all images
       const images = await SimpleImage.find().sort({ uploadDate: -1 });
       
@@ -69,9 +71,9 @@ module.exports = async (req, res) => {
         count: images.length,
         data: images
       });
-    } else if (method === 'DELETE') {
+    } else if (method === 'DELETE' && pathname.startsWith('/images/')) {
       // Delete image
-      const imageId = req.url.split('/').pop();
+      const imageId = pathname.split('/').pop();
       const image = await SimpleImage.findById(imageId);
 
       if (!image) {
@@ -88,7 +90,7 @@ module.exports = async (req, res) => {
         success: true,
         data: {}
       });
-    } else if (method === 'GET' && req.url.includes('/export/excel')) {
+    } else if (method === 'GET' && pathname === '/export/excel') {
       // Export to Excel
       const images = await SimpleImage.find().sort({ uploadDate: -1 });
 
@@ -96,7 +98,7 @@ module.exports = async (req, res) => {
       const worksheet = workbook.addWorksheet('Image URLs');
 
       // Add headers
-      worksheet.addRow(['Image Name', 'Image URL', 'Upload Date', 'File Size (MB)', 'File Type']);
+      worksheet.addRow(['Image Name', 'Image URL']);
       
       // Style headers
       worksheet.getRow(1).font = { bold: true };
@@ -110,10 +112,7 @@ module.exports = async (req, res) => {
       images.forEach(image => {
         worksheet.addRow([
           image.originalFilename,
-          image.cloudinaryUrl,
-          new Date(image.uploadDate).toLocaleDateString(),
-          (image.fileSize / 1024 / 1024).toFixed(2),
-          image.fileType
+          image.cloudinaryUrl
         ]);
       });
 
@@ -132,7 +131,7 @@ module.exports = async (req, res) => {
       await workbook.xlsx.write(res);
       res.end();
     } else {
-      res.status(404).json({ success: false, message: 'Route not found' });
+      res.status(404).json({ success: false, message: 'Route not found', pathname });
     }
 
   } catch (error) {
