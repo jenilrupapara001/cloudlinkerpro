@@ -58,7 +58,7 @@ module.exports = async (req, res) => {
     });
 
     const { method } = req;
-    const url = new URL(req.url, `https://${req.headers.host}`);
+    const url = new URL(req.url, 'http://dummy-host');
     const pathname = url.pathname;
 
     // Handle different routes
