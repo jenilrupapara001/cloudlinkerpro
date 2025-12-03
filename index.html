@@ -652,6 +652,12 @@
 
                 const signData = await signResponse.json();
                 console.log('🔐 Sign data received:', signData);
+                
+                // Check if environment variables are set
+                if (!signData.cloudName || !signData.apiKey || !signData.signature) {
+                    throw new Error('Environment variables not configured properly');
+                }
+
                 const { cloudName, apiKey, signature, timestamp, folder } = signData;
 
                 updateProgress(10, 'Uploading images directly to Cloudinary...', validFiles[0].name);

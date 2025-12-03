@@ -10,10 +10,22 @@ module.exports = async (req, res) => {
     return false;
   }
 
+  // Check environment variables
+  const envStatus = {
+    MONGO_URI: process.env.MONGO_URI ? '✅ Set' : '❌ Missing',
+    CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME ? '✅ Set' : '❌ Missing',
+    CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY ? '✅ Set' : '❌ Missing',
+    CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET ? '✅ Set' : '❌ Missing'
+  };
+
+  const hasAllEnv = Object.values(envStatus).every(status => status === '✅ Set');
+
   res.status(200).json({ 
-    status: 'healthy', 
+    status: hasAllEnv ? 'healthy' : 'missing_env_vars', 
     message: 'CloudLinker Pro API - Vercel Deployment',
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    version: '1.0.0',
+    environment: envStatus,
+    uploadMethod: hasAllEnv ? 'Direct Cloudinary (Unlimited)' : 'Requires environment setup'
   });
 };
